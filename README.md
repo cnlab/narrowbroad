@@ -16,3 +16,7 @@ Data files:
 - Article word count (for teaser/abstract and headline) and presentation times in s: articles.csv
 - Participant gender and Facebook friend count (= ego_degree): demographics.csv
 - Reaction times Article task: rt.csv
+
+Analysis:
+- R-Code for Analysis: analysis.Rmd
+- R-Markdown output: analysis_out.html
