@@ -14,7 +14,7 @@ Data files:
   - Self excluding social ROI: nsynth_selfnotment_rt.csv
   - Social excluding self ROI: nsynth_mentnotself_rt.csv
 - Article word count (for teaser/abstract and headline) and presentation times in s: articles.csv
-- Participant gender and Facebook friend count (= ego_degree): demographics.csv
+- Participant gender and age: demographics_wo_egodegree.csv
 - Reaction times Article task: rt.csv
 
 Analysis:
