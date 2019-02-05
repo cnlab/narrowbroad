@@ -1,0 +1,237 @@
+---
+title: 'DECISION-MAKING ABOUT BROAD- AND NARROWCASTING: A NEUROSCIENTIFIC PERSPECTIVE'
+author: "Christin Scholz, Elisa C. Baek, Matthew B. O'Donnell, Emily B. Falk"
+date: "FEBRUARY, 2019"
+output:
+  html_document:
+    highlight: textmate
+    theme: paper
+    toc: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r, echo=FALSE}
+library(ggplot2)
+```
+
+
+# Data
+```{r}
+# Demographics
+demo<-read.csv('data/demographics_wo_egodegree.csv')
+
+# Articles
+articles<-read.csv('data/articles.csv')
+
+# Reaction Times
+rt<-read.csv('data/rt.csv',stringsAsFactors = F)
+
+# Brain Data - Model without reaction times
+nsynth_ment<-read.csv('data/ROI_extractions/nsynth_ment.csv',stringsAsFactors = F)
+nsynth_self<-read.csv('data/ROI_extractions/nsynth_self.csv',stringsAsFactors = F)
+nsynth_mentnotself<-read.csv('data/ROI_extractions/nsynth_mentnotself.csv',stringsAsFactors = F)
+nsynth_selfnotment<-read.csv('data/ROI_extractions/nsynth_selfnotment.csv',stringsAsFactors = F)
+
+# Brain Data - Model with reaction times
+nsynth_ment_rt<-read.csv('data/ROI_extractions/nsynth_ment_rt.csv',stringsAsFactors = F)
+nsynth_self_rt<-read.csv('data/ROI_extractions/nsynth_self_rt.csv',stringsAsFactors = F)
+nsynth_mentnotself_rt<-read.csv('data/ROI_extractions/nsynth_mentnotself_rt.csv',stringsAsFactors = F)
+nsynth_selfnotment_rt<-read.csv('data/ROI_extractions/nsynth_selfnotment_rt.csv',stringsAsFactors = F)
+```
+
+
+# Article task
+
+* Reading screen presentation times: `r min(articles$pres_time)` (N = `r sum(articles$pres_time==8)`), 10 (N = `r sum(articles$pres_time==10)`) or `r max(articles$pres_time)` (N = `r sum(articles$pres_time==12)`) s
+
+# New York Times articles 
+
+* Article word count range: `r min(articles$total_wc)` - `r max(articles$total_wc)` words in title and abstract.
+
+# Participants
+* N = `r length(demo$pID)` 
+* N (females) = `r sum(demo$gender==2)` 
+* Age range: `r min(demo$age)` - `r max(demo$age)` (M = `r round(mean(demo$age),1)`, SD = `r round(sd(demo$age),1)`)
+
+# Neural model of the article task
+
+```{r, echo=FALSE}
+# Get average reaction time for each condition per person
+pIDs<-c()
+content<-c()
+narrow<-c()
+broad<-c()
+for(id in unique(rt$pID)){
+  pIDs[length(pIDs)+1]<-id
+  content[length(content)+1]<-mean(rt$pmod1_rt[which(rt$cond=='content' & rt$pID==id)],na.rm=T)
+  narrow[length(narrow)+1]<-mean(rt$pmod1_rt[which(rt$cond=='narrowcasting' & rt$pID==id)],na.rm=T)
+  broad[length(broad)+1]<-mean(rt$pmod1_rt[which(rt$cond=='broadcasting' & rt$pID==id)],na.rm=T)
+}
+```
+
+* Mean reaction time 
+* Control trials: M = `r mean(content)`, SD = `r sd(content)` 
+* Narrowcasting trials: M = `r mean(narrow)`, SD = `r sd(narrow)`; 
+* Comparison to Control: 
+```{r} 
+t.test(content,narrow,paired=T)
+``` 
+* Broadcasting trials: M = `r mean(broad)`, SD = `r sd(broad)`; 
+* Comparison to Control: 
+```{r} 
+t.test(content,broad, paired=T)
+```
+
+* Comparison narrowcasting to broadcasting: 
+
+```{r}
+t.test(narrow,broad, paired=T)
+```
+
+# Results
+
+__Figure 2b__
+```{r, echo=FALSE}
+# Get means of percent signal change in self and social ROIs + sds for error bars
+
+means_self<-c(mean(nsynth_self$NARROWvsCONTENT_read),mean(nsynth_self$BROADvsCONTENT_read))
+sds_self<-c(sd(nsynth_self$NARROWvsCONTENT_read),sd(nsynth_self$BROADvsCONTENT_read))
+
+means_social<-c(mean(nsynth_ment$NARROWvsCONTENT_read),mean(nsynth_ment$BROADvsCONTENT_read))
+sds_social<-c(sd(nsynth_ment$NARROWvsCONTENT_read),sd(nsynth_ment$BROADvsCONTENT_read))
+
+means_selfnotment<-c(mean(nsynth_selfnotment$NARROWvsCONTENT_read),mean(nsynth_selfnotment$BROADvsCONTENT_read))
+sds_selfnotment<-c(sd(nsynth_selfnotment$NARROWvsCONTENT_read),sd(nsynth_selfnotment$BROADvsCONTENT_read))
+
+means_mentnotself<-c(mean(nsynth_mentnotself$NARROWvsCONTENT_read),mean(nsynth_mentnotself$BROADvsCONTENT_read))
+sds_mentnotself<-c(sd(nsynth_mentnotself$NARROWvsCONTENT_read),sd(nsynth_mentnotself$BROADvsCONTENT_read))
+
+
+
+conditions<-c('NC > C','BC > C')
+
+data_self<-data.frame(conditions,means_self,sds_self)
+data_social<-data.frame(conditions,means_social,sds_social)
+data_selfnotment<-data.frame(conditions,means_selfnotment,sds_selfnotment)
+data_mentnotself<-data.frame(conditions,means_mentnotself,sds_mentnotself)
+
+# Create plots
+
+## Self
+fig2b_self<-ggplot(data_self, aes(x=as.factor(conditions), y=means_self)) +
+  geom_bar(position=position_dodge(), stat="identity",fill=c('#000000','#000000'),color=c('#000000','#000000')) +
+  geom_errorbar(aes(ymin=means_self-(1.96*(sds_self/sqrt(41))), ymax=means_self+(1.96*(sds_self/sqrt(41)))), width=.2,position=position_dodge(.9),color=('#646464'))+
+  theme_bw() +
+  labs(x = '') +
+  labs(y = '') + 
+  theme_bw() +
+  theme(axis.text = element_text(size=16),axis.line = element_line(colour = "darkgrey"),
+    panel.border = element_blank())
+
+# Social
+
+fig2b_social<-ggplot(data_social, aes(x=as.factor(conditions), y=means_social)) +
+  geom_bar(position=position_dodge(), stat="identity",fill=c('#FFFFFF','#FFFFFF'),color=c('#000000','#000000')) +
+  geom_errorbar(aes(ymin=means_social-(1.96*(sds_social/sqrt(41))), ymax=means_social+(1.96*(sds_social/sqrt(41)))), width=.2,position=position_dodge(.9))+
+  theme_bw() +
+  labs(x = '') +
+  labs(y = '') + 
+  theme_bw() +
+  theme(axis.text = element_text(size=16),axis.line = element_line(colour = "darkgrey"),
+    panel.border = element_blank())
+```
+
+```{r}
+fig2b_self
+fig2b_social
+```
+
+__COMPARISONS TO CONTROL: Results for self exclusive of social ROI__
+
+* narrowcasting > control:  
+
+```{r}
+t.test(nsynth_selfnotment$NARROWvsCONTENT_read)
+```
+
+* broadcasting > control:  
+
+```{r}
+t.test(nsynth_selfnotment$BROADvsCONTENT_read)
+```
+
+__COMPARISONS TO CONTROL: Results for social exclusive of self ROI__
+
+* narrowcasting > control: 
+```{r}
+t.test(nsynth_mentnotself$NARROWvsCONTENT_read)
+```
+
+* broadcasting > control: 
+```{r}
+t.test(nsynth_mentnotself$BROADvsCONTENT_read)
+```
+
+__COMPARISONS TO CONTROL: Results for model including reaction times__
+```{r}
+t.test(nsynth_self_rt$broadvscontent)
+t.test(nsynth_self_rt$narrowvscontent)
+t.test(nsynth_ment_rt$broadvscontent)
+t.test(nsynth_ment_rt$narrowvscontent)
+t.test(nsynth_mentnotself_rt$narrowvscontent)
+t.test(nsynth_selfnotment_rt$narrowvscontent)
+t.test(nsynth_mentnotself_rt$broadvscontent)
+t.test(nsynth_selfnotment_rt$broadvscontent)
+```
+
+__Figure 2c__
+```{r, echo=FALSE}
+means<-c(mean(nsynth_self$NARROWvsBROAD_read),mean(nsynth_ment$NARROWvsBROAD_read))
+sds<-c(sd(nsynth_self$NARROWvsBROAD_read),sd(nsynth_ment$NARROWvsBROAD_read))
+
+conditions<-c('Self','Social')
+data<-data.frame(conditions,means,sds)
+
+fig2c<-ggplot(data, aes(x=as.factor(conditions), y=means)) +
+  geom_bar(position=position_dodge(), stat="identity",fill=c('#000000','#FFFFFF'),color=c('#000000','#000000')) +
+  geom_errorbar(aes(ymin=means-(1.96*(sds/sqrt(41))), ymax=means+(1.96*(sds/sqrt(41)))), width=.2,position=position_dodge(.9),color=c('#646464','#000000'))+
+  theme_bw() +
+  labs(x = '') +
+  labs(y = '') + 
+  theme_bw() +
+  theme(axis.text = element_text(size=16),axis.line = element_line(colour = "darkgrey"),
+    panel.border = element_blank())
+```
+
+```{r}
+fig2c
+```
+
+__COMPARISON NARROWCASTING vs. BROADCASTING: self-related ROI__
+```{r}
+t.test(nsynth_self$NARROWvsBROAD_read)
+```
+
+__COMPARISON NARROWCASTING vs. BROADCASTING: self-related ROI__
+```{r}
+t.test(nsynth_ment$NARROWvsBROAD_read)
+```
+
+__COMPARISON NARROWCASTING vs. BROADCASTING: self exclusive of social ROI__
+```{r}
+t.test(nsynth_selfnotment$NARROWvsBROAD_read)
+```
+
+__COMPARISON NARROWCASTING vs. BROADCASTING: social exclusive of self ROI__
+```{r}
+t.test(nsynth_mentnotself$NARROWvsBROAD_read)
+```
+
+__COMPARISONS NARROWCASTING vs. BROADCASTING: Results for model including reaction times__
+```{r}
+t.test(nsynth_self_rt$narrowvsbroad)
+t.test(nsynth_ment_rt$narrowvsbroad)
+t.test(nsynth_selfnotment_rt$narrowvsbroad)
+t.test(nsynth_mentnotself_rt$narrowvsbroad)
+```
